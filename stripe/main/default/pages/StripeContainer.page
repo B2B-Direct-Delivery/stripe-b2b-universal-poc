@@ -1,0 +1,63 @@
+<apex:page id="StripeContainer" showHeader="false" standardStylesheets="false"
+           controller="StripeController"
+           sideBar="false" applyBodyTag="false"
+           applyHtmlTag="false">
+    <apex:includeScript value="https://js.stripe.com/v3/"/>
+
+    <form id="payment-form">
+        <div id="payment-ele"></div>
+
+        <div id="error-message">
+            <!-- Display error message to your customers here -->
+        </div>
+    </form>
+    <script type="text/javascript">
+
+        /* TODO MOVE ALL THIS TO AN EXTERNAL RESOURCE */
+        console.log('HERE WE GO');
+
+        window.parent.postMessage('here we go!!!', '{!originUrl}');
+
+        window.addEventListener('message', function(message) {
+            if (message.origin == self.location.origin && message.data) {
+                console.log('Received a message', message.data);
+
+                confirmPayment();
+            }
+        });
+
+        // TODO load these two dynamically!!!
+        const stripePK = 'pk_test_51Jbn5yDHnLkXAdnLkNiqbdhxDuyg27nWFK90NIaUAyJD2qSpAUAq5uXTD1Xqxx065CaIj4JKtLghevZ1gSgkrPSi00VNBDc1yk';
+        const clientSecret = '{!clientSecret}';
+
+        const stripe = Stripe(stripePK);
+
+        const elements = stripe.elements({
+            clientSecret: clientSecret,
+        });
+
+        // setup payment element
+        let paymentEle = elements.create('payment');
+        paymentEle.mount('#payment-ele');
+
+        async function confirmPayment() {
+            const {paymentIntent, error} = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: window.location.href
+                },
+                redirect: 'if_required'
+            });
+
+            if (error) {
+                const messages = document.getElementById('error-message')
+                messages.textContent = error.message;
+            }
+            // TODO check what happens with error, does it send error and payment intent? in which case this should be if/else?
+            if (paymentIntent) {
+                console.log('in theory payment ok...', paymentIntent);
+                window.parent.postMessage(paymentIntent, '{!originUrl}'); // TODO handle this in parent
+            }
+        }
+    </script>
+</apex:page>

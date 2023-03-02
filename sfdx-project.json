@@ -1,0 +1,12 @@
+{
+  "packageDirectories": [
+    {
+      "path": "stripe",
+      "default": true
+    }
+  ],
+  "name": "stripe-test",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "55.0"
+}
